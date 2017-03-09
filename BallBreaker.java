@@ -41,385 +41,418 @@ import javax.swing.Timer;
 
 /* Class for 'Ball' object */
 
-class Ball {
-    public double x, y;    // 2d position coordinates of the ball
-    public double dx, dy;  /* x and y components of velocity
+class Ball { 
+	public double x, y;    // 2d position coordinates of the ball
+	public double dx, dy;  /* x and y components of velocity
                               both the components are kept equal 
                               through out the game (to achieve a 45 degree 
                               angle of impact) */
-    public double radius;  /* radius of the Ball (kept constant 
-			      through out the game) */
-    public Ball(double x, double y, double dx, double dy, double radius) {
-	this.x = x;
-	this.y = y;
-	this.dx = dx;
-	this.dy = dy;
-	this.radius = radius;
-    }
+	public double radius;  /* radius of the Ball (kept constant throughout the game) */
+
+	// Function for creating a ball type object
+	public Ball(double x, double y, double dx, double dy, double radius) {
+		this.x = x;
+		this.y = y;
+		this.dx = dx;
+		this.dy = dy;
+		this.radius = radius;
+	}
 }
+//added proper spacing, fixed spelling mistake(s) and added additional comment on "Ball" function
+
 
 /* Class to denote a 'Player' block */
 
 class Player {
-    public double x, y;  // 2d coordinates of the player for position
-    public double width, height; // width and height of the player
-    public Player(double x, double y, double width, double height) {
-	this.x = x;
-	this.y = y;
-	this.width = width;
-	this.height = height;
-    }
+	public double x, y;  // 2d position coordinates of the player 
+	public double width, height; // width and height values of the player
+
+	// Function for creating a ball type object
+	public Player(double x, double y, double width, double height) {
+		this.x = x;
+		this.y = y;
+		this.width = width;
+		this.height = height;
+	}
 }
+//made comments more concise and added additional comment on "Player" function
+
 
 /* Class to denote a brick */
 
 class Brick {
-    public double x, y; // 2d coordinates denoting postion of the brick
-    public static final double width = 100, height = 30; //width and heights
-    public boolean isRendered; // tells whether to render the brick on the screen or not
-    public Rectangle2D br;  // The rectangle object that will be drawn on the JComponent
-    
-    public Brick(double x, double y) {
-	this.x = x;
-	this.y = y;
-	isRendered = true;
-	br = new Rectangle2D.Double(x, y, width, height);
-    }
+	public double x, y; // 2d coordinates denoting position of the brick
+	public static final double width = 100, height = 30; //width and heights of bricks
+	public boolean isRendered; // tells whether to render the brick on the screen or not
+	public Rectangle2D br;  // The rectangle object that will be drawn on the JComponent
+
+	// Function for creating a brick type object
+	public Brick(double x, double y) {
+		this.x = x;
+		this.y = y;
+		isRendered = true;
+		br = new Rectangle2D.Double(x, y, width, height);
+	}
 }
+//Corrected spelling(84) and added some detail(85) added additional comment on "Brick" function
 
 /* Class to denote 'World" aka the "The space in which the game occurs" */
 
 class World extends JComponent {
-    private Ball ball;  // A Object of type ball
-    private Player player; // Object denoting player
-    private Brick[][] bricks; // A 2d array of bricks
-    private Ellipse2D e; // graphics object for Ball
-    private Rectangle2D c; // Graphics object for Player
-    private int score = 0; // Game score
-    public boolean isGameOver = false; // Denotes whether the game is over or not
-    private int lives = 3; // Number of lives
-    private double impact_distance; /* distance from point of impact 
-				       to the center of the Player block */
-    private Font f1, f2;  /* Font objects for changing font styles */
-    private TextLayout t1, t2, t3; /* Text layouts */
-    private FontRenderContext frc;
-    private Preferences prefs; // Top score preferences
-    public World() {
-	e = new Ellipse2D.Double();
-	c = new Rectangle2D.Double();
-	prefs = Preferences.userNodeForPackage(this.getClass());
-    }
-    public void paintComponent(Graphics g) {
-	super.paintComponent(g);
-	Graphics2D g2 = (Graphics2D) g;
-	frc = g2.getFontRenderContext();
-	if(isGameOver) {	    
-	    t1 = new TextLayout("Game Over", f1, frc);
-	    t2 = new TextLayout("Awesome!", f2, frc);
-	    t3 = new TextLayout("Try Again", f2, frc);
-	    t1.draw(g2, 300, 270);
-	    if(score == 15) {
-		t2.draw(g2, 350, 290);  // Means the player has cleared all the bricks
-	    }else{
-		t3.draw(g2, 350, 290); // Game ended but some bricks left
-	    }
-	    g2.drawString("Top Scores", 370, 350); // Display top scores of all time
-	    g2.drawString("First:  "+Integer.toString(prefs.getInt("#1", 0)), 360, 370);
-	    g2.drawString("Second: "+Integer.toString(prefs.getInt("#2", 0)), 360, 390);
-	    g2.drawString("Third:  "+Integer.toString(prefs.getInt("#3", 0)), 360, 410);
-	}
-	e.setFrame(ball.x, ball.y, ball.radius, ball.radius); // Set ball position
-	c.setFrame(player.x, player.y, player.width, player.height); // Set player position
-	// Fill and draw the above objects
-	g2.fill(e);
-	g2.draw(e);
-	g2.fill(c);
-	g2.draw(c);
-	g2.drawString("Score: "+Integer.toString(score), 20, 560);
-	g2.drawString("Game by Praveen <tpk1024@gmail.com>", 250, 560);
-	g2.drawString("Lives: "+Integer.toString(lives)+" Remaining", 650, 560);
-	// Draw the Bricks
-	for(Brick[] Row : bricks) {
-	    for(Brick brick : Row) {
-		if(brick.isRendered) {		    
-		    g2.setColor(Color.darkGray);		   
-		    g2.fill(brick.br);
-		    g2.setColor(Color.white);
-		    g2.draw(brick.br);		    
-		}
-	    }
-	}
-    }
-    
-    public void resetPlayer() {
-	// Resets the player position
-	Dimension d = getSize();
-	ball.x = d.width/2;
-	ball.y = d.height - 65;
-	ball.dx = 4.0;
-	ball.dy = -4.0;
-	player.x = d.width/2 - 50;
-    }
+	private Ball ball;  // An Object of type ball
+	private Player player; // Object denoting player
+	private Brick[][] bricks; // A 2d array of bricks
+	private Ellipse2D e; // graphics object for Ball
+	private Rectangle2D c; // Graphics object for Player
+	private int score = 0; // Game score
+	public boolean isGameOver = false; // Denotes whether the game is over or not
+	private int lives = 3; // Number of lives
+	private double impact_distance; /* distance from point of impact to the center of the Player block */
 
-    public void resetBricks() {
-	// Resets the Bricks (Makes all them visible)
-	for(Brick[] Row : bricks) {
-	    for(Brick brick : Row) {
-		brick.isRendered = true;
-	    }
-	}
-    }
-    
-    public void resetStats() {
-	// Resets the stats
-	lives = 3;
-	score = 0;
-	isGameOver = false;
-    }
-    
-    public void handleEvent(KeyEvent e) {
-	// Handles the keyboard events
-	double shift = 15;
-	Dimension d = getSize();
-	int k = e.getKeyCode();
-	if((k == KeyEvent.VK_LEFT) || (k == KeyEvent.VK_KP_LEFT)) {
-	    // If a left arrow key
-	    if(player.x > 0) {
-		player.x -= shift; // Move left
-	    }
-	}
-	if((k == KeyEvent.VK_RIGHT) || (k == KeyEvent.VK_KP_RIGHT)) {
-	    // If a right arrow key
-	    if(player.x < (d.width - player.width - shift)) {
-		player.x += shift;  // Move right
-	    }
-	}
-    }
+	private Font f1, f2;  /* Font objects for changing font styles */
+	private TextLayout t1, t2, t3; /* Text layouts */
+	private FontRenderContext frc;
+	private Preferences prefs; // Top score preferences
 
-    public void initscene() {
-	// Initialize the scene
-	double x0 = 50.0, y0 = 100.0;
-	Dimension d = getSize();
-	ball  = new Ball(d.width/2, d.height - 60, 4.0, -4.0, 10.0);
-	player = new Player(d.width/2 - 50, d.height - 50, 100, 10);	
-	bricks = new Brick[3][];
-	bricks[0] = new Brick[7]; // First row
-	bricks[1] = new Brick[5]; // Second row
-	bricks[2] = new Brick[3]; // Third row
-	double xs = x0, ys = y0;
-	for(int i=0; i<7; ++i) {  // Layout first row
-	    bricks[0][i] = new Brick(xs, ys);
-	    xs += Brick.width;
+
+	public World() {
+		//setting world variables types
+		e = new Ellipse2D.Double();	
+		c = new Rectangle2D.Double();
+		prefs = Preferences.userNodeForPackage(this.getClass());
 	}
-	xs = x0 + Brick.width;
-	ys = y0 + Brick.height;
-	for(int i=0; i<5; ++i) { // Layout second row
-	    bricks[1][i] = new Brick(xs, ys);
-	    xs += Brick.width;
-	}
-	xs = x0 + (2.0 * Brick.width);
-	ys = y0 + (2.0 * Brick.height);
-	for(int i=0; i<3; ++i) { // Layout third row
-	    bricks[2][i] = new Brick(xs, ys);
-	    xs += Brick.width;
-	}
+	//added detail(119)
 	
-	f1 = new Font("Consolas", Font.BOLD, 32);
-	f2 = new Font("Consolas", Font.BOLD, 20);
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		Graphics2D g2 = (Graphics2D) g;
+		frc = g2.getFontRenderContext();
+		if(isGameOver) {	    
+			// 3 different end game Screen texts
+			t1 = new TextLayout("Game Over", f1, frc);
+			t2 = new TextLayout("Awesome!", f2, frc);
+			t3 = new TextLayout("Try Again", f2, frc);
+			t1.draw(g2, 300, 270);
+			if(score == 15) {
+				t2.draw(g2, 350, 290);  // Means the player has cleared all the bricks
+			}else{
+				t3.draw(g2, 350, 290); // Game ended but some bricks left
+			}
+			g2.drawString("Top Scores", 370, 350); // Display the top 3 scores of all time
+			g2.drawString("First:  "+Integer.toString(prefs.getInt("#1", 0)), 360, 370);
+			g2.drawString("Second: "+Integer.toString(prefs.getInt("#2", 0)), 360, 390);
+			g2.drawString("Third:  "+Integer.toString(prefs.getInt("#3", 0)), 360, 410);
+		}
+		e.setFrame(ball.x, ball.y, ball.radius, ball.radius); // Set ball position
+		c.setFrame(player.x, player.y, player.width, player.height); // Set player position
+		// Fill and draw the above objects
+		g2.fill(e);
+		g2.draw(e);
+		g2.fill(c);
+		g2.draw(c);
+		// draw the score and life stats along with author 
+		g2.drawString("Score: "+Integer.toString(score), 20, 560);
+		g2.drawString("Game by Praveen <tpk1024@gmail.com>", 250, 560);
+		g2.drawString("Lives: "+Integer.toString(lives)+" Remaining", 650, 560);
+		// Draw the Bricks and set their colour
+		for(Brick[] Row : bricks) {
+			for(Brick brick : Row) {
+				if(brick.isRendered) {		    
+					g2.setColor(Color.darkGray);		   
+					g2.fill(brick.br);
+					g2.setColor(Color.white);
+					g2.draw(brick.br);		    
+				}
+			}
+		}
+	}
+	//added detail(131, 141, 152, 156)
 	
-    }
+	public void resetPlayer() {
+		// Resets the player position to default location of player and ball
+		Dimension d = getSize();
+		ball.x = d.width/2;
+		ball.y = d.height - 65;
+		ball.dx = 4.0;
+		ball.dy = -4.0;
+		player.x = d.width/2 - 50;
+	}
+	//added detail (166)
 
-    private void manageScores() { // Manages the top scores
-	int[] a  = new int[3];
-	a[0] = prefs.getInt("#1", 0);
-	a[1] = prefs.getInt("#2", 0);
-	a[2] = prefs.getInt("#3", 0);
-	if(score > a[0]) { // Sort them
-	    prefs.putInt("#1", score);
-	    prefs.putInt("#2", a[0]);
-	    prefs.putInt("#3", a[1]);
-	}else if(score > a[1]) {
-	    prefs.putInt("#2", score);
-	    prefs.putInt("#3", a[1]);
-	}else if(score > a[2]) {
-	    prefs.putInt("#3", score);
+	public void resetBricks() {
+		// Resets the Bricks (Makes them all visible)
+		for(Brick[] Row : bricks) {
+			for(Brick brick : Row) {
+				brick.isRendered = true;
+			}
+		}
 	}
-    }
-    
-    public void resetScores() { // Resets the top scores
-	prefs.putInt("#1", 0);
-	prefs.putInt("#2", 0);
-	prefs.putInt("#3", 0);
-    }
+	//corrected grammar (176)
+	
 
-    public void play() throws Exception{
-	// The game play
-	Dimension d = getSize();
-	if(ball.x < 0) {
-	    // Ball hits the left wall
-	    ball.x = 0;
-	    ball.dx = -ball.dx;
+	public void resetStats() {
+		// Resets the score and lives stats of the current game
+		lives = 3;
+		score = 0;
+		isGameOver = false;
 	}
-	if(ball.y < 0) {
-	    // Ball hits the upper wall
-	    ball.y = 0;
-	    ball.dy = -ball.dy;
-	}
-	if((ball.x + ball.radius) >= d.width) {
-	    // Ball hits the right wall
-	    ball.x = d.width - ball.radius;
-	    ball.dx = -ball.dx;
-	}
-	if((ball.y + ball.radius) >= d.height) {
-	    // Ball hits the bottom wall
-	    lives -= 1; // decrement the number of lives
-	    if(lives > 0) {
-		resetPlayer(); // Reset and resume if the player still has lives
-	    }else {
-		// Declare the game to be over
-		isGameOver = true;
-		BallBreaker.tmr.stop();
-		manageScores();
-	    }	    
-	}
-	checkCollisionWithPlayer(); // Check collision with the player
-	if(ball.y < 200) { // If the ball is near the bricks
-	    for(Brick[] Row : bricks) {
-		for(Brick brick : Row) {
-		    checkCollisionWithBrick(brick); // Check for collison with each of the bricks
+	//added detail (188)
+
+	public void handleEvent(KeyEvent e) {
+		// Handles the keyboard events
+		double shift = 15;
+		Dimension d = getSize();
+		int k = e.getKeyCode();
+		if((k == KeyEvent.VK_LEFT) || (k == KeyEvent.VK_KP_LEFT)) {
+			// If a left arrow key is pressed
+			if(player.x > 0) {
+				player.x -= shift; // Move player left
+			}
 		}
-	    }
-	}
-	// Move the ball
-	ball.x += ball.dx;
-	ball.y += ball.dy;
-    }
-    private boolean checkCollisionWithPlayer() { // checking and handling collision of ball with Player
-	if(e.intersects(c)) { // If the ball collides
-	    ball.dy = - Math.abs(ball.dy); // Bounce it
-	    // Calculate impact distance (The distance from the point of impact to the center of the player block )
-	    impact_distance = Point2D.distance(e.getCenterX(), e.getCenterY(), c.getCenterX(), c.getCenterY());
-	    if(impact_distance >= 30.0) { // If Impact distance is > 30 that is
-		ball.dx = -ball.dx;       // if the ball has hit the player at the edges reverse the direction  
-	    }
-	    ball.x += ball.dx;
-	    ball.y += ball.dy;
-	    return true;
-	}
-	return false;
-    }
-    private void checkCollisionWithBrick(Brick b) throws Exception { // Checks collisons with brick
-	if(b.isRendered) { // If the brick was rendered on the screen
-	    if(e.intersects(b.br)) { // And if collided
-		try {
-		    if(BallBreaker.isSoundOn) {
-			BallBreaker.playClip();
-		    }
-		} catch(Exception ex) {
-		    BallBreaker.isSoundOn = false;
+		if((k == KeyEvent.VK_RIGHT) || (k == KeyEvent.VK_KP_RIGHT)) {
+			// If a right arrow key is pressed
+			if(player.x < (d.width - player.width - shift)) {
+				player.x += shift;  // Move player right
+			}
 		}
-		++score; // Increment score
-		if(score == 15) { // If score is 50 end the game
-		    isGameOver = true;
-		    BallBreaker.tmr.stop();
-		    manageScores();
-		}
-		b.isRendered = false; // The brick should disappear
-		// Determine on which of the brick has the impact occured
-		int k = b.br.outcode(e.getCenterX(), e.getCenterY());
-		if((k == Rectangle2D.OUT_LEFT) || (k == Rectangle2D.OUT_RIGHT)) { // Left or right side
-		    ball.dx = -ball.dx;
-		}else { // Top of bottom side of the brick
-		    ball.dy = -ball.dy;
-		}
-	    }
 	}
-    }
+	//added detail (201, 203, 207, 209)
+
+	public void initscene() {
+		// Initialize the scene to include player, ball ad brick objects
+		double x0 = 50.0, y0 = 100.0;
+		Dimension d = getSize();
+		ball  = new Ball(d.width/2, d.height - 60, 4.0, -4.0, 10.0);
+		player = new Player(d.width/2 - 50, d.height - 50, 100, 10);	
+		bricks = new Brick[3][];
+		bricks[0] = new Brick[7]; // First row
+		bricks[1] = new Brick[5]; // Second row
+		bricks[2] = new Brick[3]; // Third row
+		double xs = x0, ys = y0;
+		for(int i=0; i<7; ++i) {  // Layout first row of bricks
+			bricks[0][i] = new Brick(xs, ys);
+			xs += Brick.width;
+		}
+		xs = x0 + Brick.width;
+		ys = y0 + Brick.height;
+		for(int i=0; i<5; ++i) { // Layout second row of bricks 
+			bricks[1][i] = new Brick(xs, ys);
+			xs += Brick.width;
+		}
+		xs = x0 + (2.0 * Brick.width);
+		ys = y0 + (2.0 * Brick.height);
+		for(int i=0; i<3; ++i) { // Layout third row of bricks
+			bricks[2][i] = new Brick(xs, ys);
+			xs += Brick.width;
+		}
+		//set fonts
+		f1 = new Font("Consolas", Font.BOLD, 32);
+		f2 = new Font("Consolas", Font.BOLD, 20);
+
+	}
+	//added detail (216, 226, 232, 238) added comment on fonts (242)
+	
+	private void manageScores() { // Manages the top scores 
+		int[] a  = new int[3];
+		a[0] = prefs.getInt("#1", 0);
+		a[1] = prefs.getInt("#2", 0);
+		a[2] = prefs.getInt("#3", 0);
+		if(score > a[0]) { // Sort them
+			prefs.putInt("#1", score);
+			prefs.putInt("#2", a[0]);
+			prefs.putInt("#3", a[1]);
+		}else if(score > a[1]) {
+			prefs.putInt("#2", score);
+			prefs.putInt("#3", a[1]);
+		}else if(score > a[2]) {
+			prefs.putInt("#3", score);
+		}
+	}
+
+	public void resetScores() { // Resets the top scores
+		prefs.putInt("#1", 0);
+		prefs.putInt("#2", 0);
+		prefs.putInt("#3", 0);
+	}
+
+	public void play() throws Exception{
+		// The game play mechanics of the ball
+		Dimension d = getSize();
+		if(ball.x < 0) {
+			// Mechanic when Ball hits the left wall
+			ball.x = 0;
+			ball.dx = -ball.dx;
+		}
+		if(ball.y < 0) {
+			// Mechanic when Ball hits the upper wall
+			ball.y = 0;
+			ball.dy = -ball.dy;
+		}
+		if((ball.x + ball.radius) >= d.width) {
+			// Mechanic when Ball hits the right wall
+			ball.x = d.width - ball.radius;
+			ball.dx = -ball.dx;
+		}
+		if((ball.y + ball.radius) >= d.height) {
+			// Mechanic when Ball hits the bottom wall
+			lives -= 1; // decrement the number of lives
+			if(lives > 0) {
+				resetPlayer(); // Reset and resume if the player still has lives
+			}else {
+				// Declare the game to be over
+				isGameOver = true;
+				BallBreaker.tmr.stop();
+				manageScores();
+			}	    
+		}
+		checkCollisionWithPlayer(); // Check collision with the player
+		if(ball.y < 200) { // If the ball is near the bricks
+			for(Brick[] Row : bricks) {
+				for(Brick brick : Row) {
+					checkCollisionWithBrick(brick); // Check for collision with each of the bricks
+				}
+			}
+		}
+		// Move the ball (velocity)
+		ball.x += ball.dx;
+		ball.y += ball.dy;
+	}
+	//added detail (273, 276, 281, 286, 291, 310), fixed spelling mistake (306)
+	
+	private boolean checkCollisionWithPlayer() { // checking and handling collision of ball with Player
+		if(e.intersects(c)) { // If the ball collides
+			ball.dy = - Math.abs(ball.dy); // Bounce the ball off the player 
+			// Calculate impact distance (The distance from the point of impact to the center of the player block )
+			impact_distance = Point2D.distance(e.getCenterX(), e.getCenterY(), c.getCenterX(), c.getCenterY());
+			if(impact_distance >= 30.0) { // If Impact distance is > 30 that is
+				ball.dx = -ball.dx;       // if the ball has hit the player at the edges reverse the direction  
+			}
+			ball.x += ball.dx;
+			ball.y += ball.dy;
+			return true;
+		}
+		return false;
+	}
+	//added detail (318)
+	
+	private void checkCollisionWithBrick(Brick b) throws Exception { // Checks for collision with a brick
+		if(b.isRendered) { // If the brick was rendered on the screen
+			if(e.intersects(b.br)) { // And if collided
+				try {
+					if(BallBreaker.isSoundOn) {
+						BallBreaker.playClip();
+					}
+				} catch(Exception ex) {
+					BallBreaker.isSoundOn = false;
+				}
+				++score; // Increment score
+				if(score == 15) { // If score is 50 end the game
+					isGameOver = true;
+					BallBreaker.tmr.stop();
+					manageScores();
+				}
+				b.isRendered = false; // The brick should disappear
+				// Determine on which side of the brick the impact occurred
+				int k = b.br.outcode(e.getCenterX(), e.getCenterY());
+				if((k == Rectangle2D.OUT_LEFT) || (k == Rectangle2D.OUT_RIGHT)) { // Left or right side
+					ball.dx = -ball.dx;
+				}else { // Top of bottom side of the brick
+					ball.dy = -ball.dy;
+				}
+			}
+		}
+	}
 }
+//fixed spelling and grammar (332, 349(2 words))
 
 class KeyMon implements KeyListener { // Monitors keyboard events
-    public KeyMon(World w) {
-	this.w = w;
-    }
-    public void keyPressed(KeyEvent e) {
-	if(!w.isGameOver) { // If the game is running
-	    if(e.getKeyCode() == KeyEvent.VK_SPACE) { // If SPACE is pressed
-		if(BallBreaker.tmr.isRunning()) { // If the game is running pause it
-		    BallBreaker.tmr.stop();
-		} else {
-		    BallBreaker.tmr.start(); // If not resume it
+	public KeyMon(World w) {
+		this.w = w;
+	}
+	public void keyPressed(KeyEvent e) {
+		if(!w.isGameOver) { // Checks if the game is running
+			if(e.getKeyCode() == KeyEvent.VK_SPACE) { // If SPACE is pressed
+				if(BallBreaker.tmr.isRunning()) { // If the game is running pause it
+					BallBreaker.tmr.stop();
+				} else {
+					BallBreaker.tmr.start(); // If not resume it
+				}
+				return;
+			}
+		}else{ // If no game is running
+			if(e.getKeyCode() == KeyEvent.VK_Y) { // If 'Y' is pressed
+				w.resetPlayer(); // Reset Players
+				w.resetBricks(); // Reset Bricks
+				w.resetStats();  // Reset Stats
+				BallBreaker.tmr.start(); // Start the game
+			}
+			if(e.getKeyCode() == KeyEvent.VK_R) { // If 'R' is pressed 
+				w.resetScores(); // Reset Scores
+				w.repaint();	
+			}
 		}
-		return;
-	    }
-	}else{ // If no game is running
-	    if(e.getKeyCode() == KeyEvent.VK_Y) { // If 'Y' is pressed
-		w.resetPlayer(); // Reset Players
-		w.resetBricks(); // Reset Bricks
-		w.resetStats();  // Reset Stats
-		BallBreaker.tmr.start(); // Start the game
-	    }
-	    if(e.getKeyCode() == KeyEvent.VK_R) {
-		w.resetScores();
-		w.repaint();
-	    }
+		if(BallBreaker.tmr.isRunning()) { // If the game is running
+			w.handleEvent(e); // Handle the "Left" and "Right" arrow keys
+		}
 	}
-	if(BallBreaker.tmr.isRunning()) { // If the game is running
-	    w.handleEvent(e); // Handle the "Left" and "Right" arrow keys
+	//add detail (367, 383, 384) 
+	
+	public void keyTyped(KeyEvent e) {
+		// Implemented
 	}
-    }
-    public void keyTyped(KeyEvent e) {
-	// Implemented
-    }
-    public void keyReleased(KeyEvent e) {
-	// Implemented
-    }
-    public World w;
+	public void keyReleased(KeyEvent e) {
+		// Implemented
+	}
+	public World w;
 }
 
 public class BallBreaker {
-    private static File soundFile = new File("impact.wav");
-    public static boolean isSoundOn = true;
-    public static void main(String[] args) {
-	JFrame F = new JFrame("Ball Breaker");
-	final World w = new World();
-	F.add(w);
-	F.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	F.setSize(800,600);
-	F.setResizable(false); // Frame not resizable
-	F.setLocationByPlatform(true); // Allow the platform to position the frame
-	KeyMon k = new KeyMon(w);
-	F.addKeyListener(k);
-	F.setVisible(true);
-	w.initscene(); // Initialize the scene
-	Action playAndUpdateAction = new AbstractAction() {
-		public void actionPerformed(ActionEvent e) {
-		    try {
-			w.play();
-		    }catch(Exception ex) {
-			ex.printStackTrace();
-		    }
-		    w.repaint();		
-		}
-	    };
-	tmr = new Timer(20, playAndUpdateAction); // Fire the above action event every 20 ms
-	tmr.start(); // Let's get it started!
-    }
-    public static Timer tmr; // Timer object
-
-    public static void playClip() //Plays the sound clip
-	throws IOException, UnsupportedAudioFileException,
-	       LineUnavailableException {
-	AudioInputStream auIn = null;
-	Clip clip = null;
-	try {
-	    auIn = AudioSystem.getAudioInputStream(soundFile); // May fail in some cases
-	    clip = AudioSystem.getClip();                      //  like when audio is in use by other programs
-	    clip.open(auIn);
-	    clip.start();	
-	} finally {
-	    if(auIn != null) {
-		auIn.close();
-	    }
+	private static File soundFile = new File("impact.wav");
+	public static boolean isSoundOn = true;
+	public static void main(String[] args) {
+		JFrame F = new JFrame("Ball Breaker");					// Title of Game
+		final World w = new World();
+		F.add(w);
+		F.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
+		F.setSize(800,600);										// Set Screen Size
+		F.setResizable(false); 									// Frame not re-sizable
+		F.setLocationByPlatform(true); 							// Allow the platform to position the frame
+		KeyMon k = new KeyMon(w);
+		F.addKeyListener(k);
+		F.setVisible(true);
+		w.initscene(); 											// Initialize the scene
+		Action playAndUpdateAction = new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					w.play();
+				}catch(Exception ex) {
+					ex.printStackTrace();
+				}
+				w.repaint();		
+			}
+		};
+		tmr = new Timer(20, playAndUpdateAction); 				// Fire the above action event every 20 ms
+		tmr.start(); 											// Let's get it started!
 	}
-    }
+	//added detail(407, 411) fixed grammar(412)
+	
+	public static Timer tmr;									// Timer object
+
+	public static void playClip() 								//Plays the sound clip
+			throws IOException, UnsupportedAudioFileException,
+			LineUnavailableException {
+		AudioInputStream auIn = null;
+		Clip clip = null;
+		try {
+			auIn = AudioSystem.getAudioInputStream(soundFile); // May fail in some cases
+			clip = AudioSystem.getClip();                      //  like when audio is in use by other programs
+			clip.open(auIn);
+			clip.start();	
+		} finally {
+			if(auIn != null) {
+				auIn.close();
+			}
+		}
+	}
 }
+
